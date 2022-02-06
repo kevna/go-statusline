@@ -33,14 +33,14 @@ func minifyPath(path string) string {
 	return "\033[94m" + strings.Join(dirs, "/") + "\033[m"
 }
 
-func applyVCS(path string) string {
-	root := RootDir()
+func applyVCS(path string, vcs VCS) string {
+	root := vcs.RootDir()
 	common := path[0:len(root)]
 	remainder := path[len(root):len(path)]
-	return minifyPath(common) + Stats() + minifyPath(remainder)
+	return minifyPath(common) + vcs.Stats() + minifyPath(remainder)
 }
 
 func Statusline() string {
 	path, _ := os.Getwd()
-	return applyVCS(path)
+	return applyVCS(path, git{})
 }

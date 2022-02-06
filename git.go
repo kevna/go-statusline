@@ -54,17 +54,25 @@ func (s status) String() string {
 
 const icon = "\033[38;5;202m\uE0A0\033[m"
 
-func RootDir() string {
+type VCS interface {
+	RootDir() string
+	Branch() string
+	Stats() string
+}
+
+type git struct {}
+
+func (g git) RootDir() string {
 	str, _ := runCommand("rev-parse", "--show-toplevel")
 	return str
 }
 
-func Branch() string {
+func (g git) Branch() string {
 	str, _ := runCommand("rev-parse", "--symbolic-full-name", "--abbrev-ref", "HEAD")
 	return str
 }
 
-func AheadBehind() (ab, error) {
+func (g git) AheadBehind() (ab, error) {
 	ahead, err := count("rev-list", "@{push}..HEAD")
 	if err != nil {
 		return ab{}, err
@@ -79,7 +87,7 @@ func AheadBehind() (ab, error) {
 	}, nil
 }
 
-func Status() status {
+func (g git) Status() status {
 	str, _ := runCommand("status", "--porcelain")
 	result := status{}
 	for _, line := range strings.Split(str, "\n") {
@@ -100,25 +108,25 @@ func Status() status {
 	return result
 }
 
-func Stashes() int {
+func (g git) Stashes() int {
 	count, _ := count("stash", "list")
 	return count
 }
 
-func Stats() string {
+func (g git) Stats() string {
 	result := []string {icon}
-	if branch := Branch(); !strings.HasSuffix(RootDir(), branch) {
+	if branch := g.Branch(); !strings.HasSuffix(g.RootDir(), branch) {
 		result = append(result, branch)
 	}
-	if ab, err := AheadBehind(); err != nil {
+	if ab, err := g.AheadBehind(); err != nil {
 		result = append(result, "\033[91m↯\033[m")
 	} else {
 		result = append(result, fmt.Sprintf("%s", ab))
 	}
-	if status := Status(); status.Bool() {
+	if status := g.Status(); status.Bool() {
 		result = append(result, fmt.Sprintf("(%s)", status))
 	}
-	if stashes := Stashes(); stashes > 0 {
+	if stashes := g.Stashes(); stashes > 0 {
 		result = append(result, fmt.Sprintf("{%d}", stashes))
 	}
 	return strings.Join(result, "")

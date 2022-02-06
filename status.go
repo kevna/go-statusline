@@ -19,7 +19,7 @@ func minifyDir(name string) string {
 	return name
 }
 
-func minifyPath(path string) string {
+func minifyPath(path string, keep int) string {
 	if path == "" {
 		return path
 	}
@@ -27,7 +27,7 @@ func minifyPath(path string) string {
 		path = "~/" + path[len(home):len(path)]
 	}
 	dirs := strings.Split(path, "/")
-	for i, d := range dirs[:len(dirs)-1] {
+	for i, d := range dirs[:len(dirs)-keep] {
 		dirs[i] = minifyDir(d)
 	}
 	return "\033[94m" + strings.Join(dirs, "/") + "\033[m"
@@ -37,7 +37,11 @@ func applyVCS(path string, vcs VCS) string {
 	root := vcs.RootDir()
 	common := path[0:len(root)]
 	remainder := path[len(root):len(path)]
-	return minifyPath(common) + vcs.Stats() + minifyPath(remainder)
+	keep := 1
+	if strings.HasSuffix(common, "/"+vcs.Branch()) {
+		keep++
+	}
+	return minifyPath(common, keep) + vcs.Stats() + minifyPath(remainder, 1)
 }
 
 func Statusline() string {

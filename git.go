@@ -3,6 +3,7 @@ package main
 import (
 	"strings"
 	"fmt"
+	"os"
 )
 
 type ab struct {
@@ -111,6 +112,16 @@ func (g git) Status() status {
 func (g git) Stashes() int {
 	count, _ := count("stash", "list")
 	return count
+}
+
+func (g git) Bool() bool {
+	if _, err := os.Stat(".git"); err == nil {
+		return true;
+	}
+	if branch := g.RootDir(); branch != "" {
+		return true;
+	}
+	return false;
 }
 
 func (g git) Stats() string {

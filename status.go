@@ -46,5 +46,9 @@ func applyVCS(path string, vcs VCS) string {
 
 func Statusline() string {
 	path, _ := os.Getwd()
-	return applyVCS(path, git{})
+	vcs := git{}
+	if vcs.Bool() {
+		return applyVCS(path, vcs)
+	}
+	return minifyPath(path, 1)
 }

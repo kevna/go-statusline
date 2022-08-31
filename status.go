@@ -4,11 +4,12 @@ import (
 	"os"
 	"strings"
 	"regexp"
+	"github.com/kevna/statusline/pkg/git"
 )
 
 func home() string {
 	home, _ := os.UserHomeDir()
-	return home + "/"
+	return home
 }
 
 func minifyDir(name string) string {
@@ -24,7 +25,7 @@ func minifyPath(path string, keep int) string {
 		return path
 	}
 	if home := home(); strings.HasPrefix(path, home) {
-		path = "~/" + path[len(home):len(path)]
+		path = "~" + path[len(home):len(path)]
 	}
 	dirs := strings.Split(path, "/")
 	for i, d := range dirs[:len(dirs)-keep] {
@@ -33,7 +34,7 @@ func minifyPath(path string, keep int) string {
 	return "\033[94m" + strings.Join(dirs, "/") + "\033[m"
 }
 
-func applyVCS(path string, vcs VCS) string {
+func applyVCS(path string, vcs git.VCS) string {
 	root := vcs.RootDir()
 	common := path[0:len(root)]
 	remainder := path[len(root):len(path)]
@@ -46,7 +47,7 @@ func applyVCS(path string, vcs VCS) string {
 
 func Statusline() string {
 	path, _ := os.Getwd()
-	vcs := git{}
+	vcs := git.Git{}
 	if vcs.Bool() {
 		return applyVCS(path, vcs)
 	}

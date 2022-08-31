@@ -1,4 +1,4 @@
-package main
+package git
 
 import (
 	"strings"
@@ -61,19 +61,19 @@ type VCS interface {
 	Stats() string
 }
 
-type git struct {}
+type Git struct {}
 
-func (g git) RootDir() string {
+func (g Git) RootDir() string {
 	str, _ := runCommand("rev-parse", "--show-toplevel")
 	return str
 }
 
-func (g git) Branch() string {
+func (g Git) Branch() string {
 	str, _ := runCommand("rev-parse", "--symbolic-full-name", "--abbrev-ref", "HEAD")
 	return str
 }
 
-func (g git) AheadBehind() (ab, error) {
+func (g Git) AheadBehind() (ab, error) {
 	ahead, err := count("rev-list", "@{push}..HEAD")
 	if err != nil {
 		return ab{}, err
@@ -88,7 +88,7 @@ func (g git) AheadBehind() (ab, error) {
 	}, nil
 }
 
-func (g git) Status() status {
+func (g Git) Status() status {
 	str, _ := runCommand("status", "--porcelain")
 	result := status{}
 	for _, line := range strings.Split(str, "\n") {
@@ -109,12 +109,12 @@ func (g git) Status() status {
 	return result
 }
 
-func (g git) Stashes() int {
+func (g Git) Stashes() int {
 	count, _ := count("stash", "list")
 	return count
 }
 
-func (g git) Bool() bool {
+func (g Git) Bool() bool {
 	if _, err := os.Stat(".git"); err == nil {
 		return true;
 	}
@@ -124,7 +124,7 @@ func (g git) Bool() bool {
 	return false;
 }
 
-func (g git) Stats() string {
+func (g Git) Stats() string {
 	result := []string {icon}
 	if branch := g.Branch(); !strings.HasSuffix(g.RootDir(), branch) {
 		result = append(result, branch)

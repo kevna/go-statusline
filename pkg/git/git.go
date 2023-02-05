@@ -14,7 +14,7 @@ type ab struct {
 
 func (ab ab) String() string {
 	ahead := ab.ahead > 0
-	behind := ab.ahead > 0
+	behind := ab.behind > 0
 	if ahead && behind {
 		return fmt.Sprintf("\033[30;41m↕%d\033[m", ab.ahead+ab.behind)
 	}

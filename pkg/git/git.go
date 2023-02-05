@@ -8,23 +8,26 @@ import (
 const icon = "\033[38;5;202m\uE0A0\033[m"
 
 type ab struct {
+	set bool
 	ahead int
 	behind int
 }
 
 func (ab ab) String() string {
-	ahead := ab.ahead > 0
-	behind := ab.behind > 0
-	if ahead && behind {
-		return fmt.Sprintf("\033[30;41m↕%d\033[m", ab.ahead+ab.behind)
+	if !ab.set {
+		return "\033[91;1m↯\033[m"
 	}
-	if ahead {
-		return fmt.Sprintf("↑%d", ab.ahead)
+	result := ""
+	if ab.ahead > 0 {
+		result += fmt.Sprintf("\033[32m↑%d", ab.ahead)
 	}
-	if behind {
-		return fmt.Sprintf("↓%d", ab.behind)
+	if ab.behind > 0 {
+		result += fmt.Sprintf("\033[31m↓%d", ab.behind)
 	}
-	return ""
+	if result != "" {
+		result += "\033[m"
+	}
+	return result
 }
 
 type status struct {
@@ -86,11 +89,6 @@ func (r repo) Branch() string {
 
 func (r repo) Stats() string {
 	result := []string {icon, r.branch}
-	// if ab, err := g.AheadBehind(); err != nil {
-	// 	result = append(result, "\033[91m↯\033[m")
-	// } else {
-	// 	result = append(result, fmt.Sprintf("%s", ab))
-	// }
 	result = append(result, fmt.Sprintf("%s", r.ab))
 	if r.status.Bool() {
 		result = append(result, fmt.Sprintf("(%s)", r.status))
@@ -120,7 +118,8 @@ func RepoBuilder() repo {
 				case "branch.head":
 				branch = fields[2]
 
-				// case "branch.ab":
+				case "branch.ab":
+				ab.set = true
 				// ab.ahead = fields[2]
 				// ab.behind = fields[3]
 

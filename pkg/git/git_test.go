@@ -10,11 +10,12 @@ func TestAbString(t *testing.T) {
 		ab ab
 		expected string
 	}{
-		{ab{}, ""},
-		{ab{0, 0}, ""},
-		{ab{1, 0}, "↑1"},
-		{ab{0, 1}, "↓1"},
-		{ab{1, 10}, "\033[30;41m↕11\033[m"},
+		{ab{}, "\033[91;1m↯\033[m"},
+		{ab{true, 0, 0}, ""},
+		{ab{true, 1, 0}, "\033[32m↑1\033[m"},
+		{ab{true, 0, 1}, "\033[31m↓1\033[m"},
+		// {ab{true, 1, 10}, "\033[30;41m↕11\033[m"},
+		{ab{true, 1, 10}, "\033[32m↑1\033[31m↓10\033[m"},
 	}
 	for _, test := range tests {
 		actual := test.ab.String()
@@ -45,16 +46,16 @@ func TestRepoStats(t *testing.T) {
 		repo repo
 		expected string
 	}{
-		{repo{}, icon+""},
-		{repo{"master", ab{}, status{}, 0}, icon+"master"},
-		{repo{"master", ab{0, 0}, status{}, 0}, icon+"master"},
-		// {
-		// 	repo{"master", ab{}, status{1, 1, 1, 1}, 0},
-		// 	icon+"master\x1b[91;1m↯\x1b[m(\x1b[91;1m1\x1b[32m1\x1b[31m1\x1b[90m1\x1b[m)",
-		// },
+		{repo{}, icon+"\033[91;1m↯\033[m"},
+		{repo{"master", ab{}, status{}, 0}, icon+"master\033[91;1m↯\033[m"},
+		{repo{"master", ab{true, 0, 0}, status{}, 0}, icon+"master"},
 		{
-			repo{"master", ab{1, 10}, status{1, 1, 4, 5}, 3},
-			icon+"master\x1b[30;41m↕11\x1b[m(\x1b[91;1m1\x1b[32m1\x1b[31m4\x1b[90m5\x1b[m){3}",
+			repo{"master", ab{}, status{1, 1, 1, 1}, 0},
+			icon+"master\x1b[91;1m↯\x1b[m(\x1b[91;1m1\x1b[32m1\x1b[31m1\x1b[90m1\x1b[m)",
+		},
+		{
+			repo{"master", ab{true, 1, 10}, status{1, 1, 4, 5}, 3},
+			icon+"master\x1b[32m↑1\x1b[31m↓10\x1b[m(\x1b[91;1m1\x1b[32m1\x1b[31m4\x1b[90m5\x1b[m){3}",
 		},
 	}
 	for _, test := range tests {

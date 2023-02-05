@@ -47,7 +47,7 @@ func applyVCS(path string, vcs git.VCS) string {
 
 func Statusline() string {
 	path, _ := os.Getwd()
-	vcs := git.Git{}
+	vcs := git.RepoBuilder()
 	if vcs.Bool() {
 		return applyVCS(path, vcs)
 	}

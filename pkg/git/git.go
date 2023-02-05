@@ -3,8 +3,9 @@ package git
 import (
 	"strings"
 	"fmt"
-	"os"
 )
+
+const icon = "\033[38;5;202m\uE0A0\033[m"
 
 type ab struct {
 	ahead int
@@ -27,17 +28,21 @@ func (ab ab) String() string {
 }
 
 type status struct {
+	unmerged int
 	staged int
 	unstaged int
 	untracked int
 }
 
 func (s status) Bool() bool {
-	return s.staged+s.unstaged+s.untracked > 0
+	return s.unmerged+s.staged+s.unstaged+s.untracked > 0
 }
 
 func (s status) String() string {
 	var result []string
+	if s.unmerged > 0 {
+		result = append(result, fmt.Sprintf("\033[91;1m%d", s.unmerged))
+	}
 	if s.staged > 0 {
 		result = append(result, fmt.Sprintf("\033[32m%d", s.staged))
 	}
@@ -53,92 +58,91 @@ func (s status) String() string {
 	return strings.Join(result, "")
 }
 
-const icon = "\033[38;5;202m\uE0A0\033[m"
-
 type VCS interface {
 	RootDir() string
 	Branch() string
 	Stats() string
 }
 
-type Git struct {}
+type repo struct {
+	branch string
+	ab ab
+	status status
+	stashes int
+}
 
-func (g Git) RootDir() string {
+func (r repo) Bool() bool {
+	return r.branch != ""
+}
+
+func (r repo) RootDir() string {
 	str, _ := runCommand("rev-parse", "--show-toplevel")
 	return str
 }
 
-func (g Git) Branch() string {
-	str, _ := runCommand("rev-parse", "--symbolic-full-name", "--abbrev-ref", "HEAD")
-	return str
+func (r repo) Branch() string {
+	return r.branch
 }
 
-func (g Git) AheadBehind() (ab, error) {
-	ahead, err := count("rev-list", "@{push}..HEAD")
-	if err != nil {
-		return ab{}, err
+func (r repo) Stats() string {
+	result := []string {icon, r.branch}
+	// if ab, err := g.AheadBehind(); err != nil {
+	// 	result = append(result, "\033[91m↯\033[m")
+	// } else {
+	// 	result = append(result, fmt.Sprintf("%s", ab))
+	// }
+	result = append(result, fmt.Sprintf("%s", r.ab))
+	if r.status.Bool() {
+		result = append(result, fmt.Sprintf("(%s)", r.status))
 	}
-	behind, err := count("rev-list", "HEAD..@{upstream}")
-	if err != nil {
-		return ab{}, err
+	if r.stashes > 0 {
+		result = append(result, fmt.Sprintf("{%d}", r.stashes))
 	}
-	return ab{
-		ahead: ahead,
-		behind: behind,
-	}, nil
+	return strings.Join(result, "")
 }
 
-func (g Git) Status() status {
-	str, _ := runCommand("status", "--porcelain")
-	result := status{}
+func RepoBuilder() repo {
+	str, _ := runCommand("status", "--porcelain=v2", "--branch", "--show-stash");
+	branch := ""
+	ab := ab{}
+	status := status{}
+	stashes := 0
 	for _, line := range strings.Split(str, "\n") {
 		if line == "" {
 			continue;
 		}
-		if strings.HasPrefix(line, "??") {
-			result.untracked++
-		} else {
-			if line[0] != ' ' {
-				result.staged++
+		switch line[0] {
+			case '#':
+			// if strings.HasPrefix(line, "?") {
+			// }
+			fields := strings.Split(line, " ")
+			switch fields[1] {
+				case "branch.head":
+				branch = fields[2]
+
+				// case "branch.ab":
+				// ab.ahead = fields[2]
+				// ab.behind = fields[3]
+
+				// case "stash":
+				// stashes = fields[2]
 			}
-			if line[1] != ' ' {
-				result.unstaged++
+
+			case 'u':
+			status.unmerged++
+
+			case '1', '2':
+			if line[2] != '.' {
+				status.staged++
 			}
+			if line[3] != '.' {
+				status.unstaged++
+			}
+
+			case '?':
+			status.untracked++
 		}
 	}
-	return result
+	return repo{branch, ab, status, stashes}
 }
 
-func (g Git) Stashes() int {
-	count, _ := count("stash", "list")
-	return count
-}
-
-func (g Git) Bool() bool {
-	if _, err := os.Stat(".git"); err == nil {
-		return true;
-	}
-	if branch := g.RootDir(); branch != "" {
-		return true;
-	}
-	return false;
-}
-
-func (g Git) Stats() string {
-	result := []string {icon}
-	if branch := g.Branch(); !strings.HasSuffix(g.RootDir(), branch) {
-		result = append(result, branch)
-	}
-	if ab, err := g.AheadBehind(); err != nil {
-		result = append(result, "\033[91m↯\033[m")
-	} else {
-		result = append(result, fmt.Sprintf("%s", ab))
-	}
-	if status := g.Status(); status.Bool() {
-		result = append(result, fmt.Sprintf("(%s)", status))
-	}
-	if stashes := g.Stashes(); stashes > 0 {
-		result = append(result, fmt.Sprintf("{%d}", stashes))
-	}
-	return strings.Join(result, "")
-}

@@ -3,6 +3,7 @@ package git
 import (
 	"strings"
 	"fmt"
+	"strconv"
 )
 
 const icon = "\033[38;5;202m\uE0A0\033[m"
@@ -99,8 +100,7 @@ func (r repo) Stats() string {
 	return strings.Join(result, "")
 }
 
-func RepoBuilder() repo {
-	str, _ := runCommand("status", "--porcelain=v2", "--branch", "--show-stash");
+func repoStringBuilder(str string) repo {
 	branch := ""
 	ab := ab{}
 	status := status{}
@@ -120,11 +120,11 @@ func RepoBuilder() repo {
 
 				case "branch.ab":
 				ab.set = true
-				// ab.ahead = fields[2]
-				// ab.behind = fields[3]
+				ab.ahead, _ = strconv.Atoi(fields[2])
+				ab.behind, _ = strconv.Atoi(fields[3][1:])
 
-				// case "stash":
-				// stashes = fields[2]
+				case "stash":
+				stashes, _ = strconv.Atoi(fields[2])
 			}
 
 			case 'u':
@@ -145,3 +145,7 @@ func RepoBuilder() repo {
 	return repo{branch, ab, status, stashes}
 }
 
+func RepoBuilder() repo {
+	str, _ := runCommand("status", "--porcelain=v2", "--branch", "--show-stash");
+	return repoStringBuilder(str)
+}

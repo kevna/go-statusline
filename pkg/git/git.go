@@ -4,6 +4,8 @@ import (
 	"strings"
 	"fmt"
 	"strconv"
+	"os"
+	"errors"
 )
 
 const icon = "\033[38;5;202m\uE0A0\033[m"
@@ -63,7 +65,7 @@ func (s status) String() string {
 }
 
 type VCS interface {
-	RootDir() string
+	RootDir(path string) string
 	Branch() string
 	Stats() string
 }
@@ -79,9 +81,21 @@ func (r repo) Bool() bool {
 	return r.branch != ""
 }
 
-func (r repo) RootDir() string {
-	str, _ := runCommand("rev-parse", "--show-toplevel")
-	return str
+func (r repo) RootDir(path string) string {
+	// str, _ := runCommand("rev-parse", "--show-toplevel")
+	// return str
+	dirs := strings.Split(path, "/")
+	for {
+		path = strings.Join(dirs, "/") + "/.git"
+		if _, err := os.Stat(path); !errors.Is(err, os.ErrNotExist) {
+			return strings.Join(dirs, "/")
+		}
+		length := len(dirs)-1
+		dirs = dirs[:length]
+		if length <= 2 { // Note: this cutoff saves us checking top-level directories, which are unlikely to be repos
+			return ""
+		}
+	}
 }
 
 func (r repo) Branch() string {
@@ -145,7 +159,10 @@ func repoStringBuilder(str string) repo {
 	return repo{branch, ab, status, stashes}
 }
 
-func RepoBuilder() repo {
-	str, _ := runCommand("status", "--porcelain=v2", "--branch", "--show-stash");
-	return repoStringBuilder(str)
+func RepoBuilder() (repo, error) {
+	str, err := runCommand("status", "--porcelain=v2", "--branch", "--show-stash");
+	if err != nil {
+		return repo{}, err
+	}
+	return repoStringBuilder(str), nil
 }

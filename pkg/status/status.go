@@ -35,7 +35,7 @@ func minifyPath(path string, keep int) string {
 }
 
 func applyVCS(path string, vcs git.VCS) string {
-	root := vcs.RootDir()
+	root := vcs.RootDir(path)
 	common := path[0:len(root)]
 	remainder := path[len(root):len(path)]
 	keep := 1
@@ -47,9 +47,9 @@ func applyVCS(path string, vcs git.VCS) string {
 
 func Statusline() string {
 	path, _ := os.Getwd()
-	vcs := git.RepoBuilder()
-	if vcs.Bool() {
-		return applyVCS(path, vcs)
-	}
+	vcs, err := git.RepoBuilder()
+	if err != nil {
 	return minifyPath(path, 1)
+	}
+	return applyVCS(path, vcs)
 }

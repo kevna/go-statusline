@@ -5,6 +5,8 @@ import (
 	"strings"
 	"regexp"
 	"github.com/kevna/statusline/pkg/git"
+	"io/ioutil"
+	"errors"
 )
 
 func home() string {
@@ -12,44 +14,76 @@ func home() string {
 	return home
 }
 
-func minifyDir(name string) string {
-	r, _ := regexp.Compile("^(\\W*\\w)")
-	if match := r.FindString(name); match != "" {
-		return match
-	}
-	return name
+func min(a, b int) int {
+    if a < b {
+        return a
+    }
+    return b
 }
 
-func minifyPath(path string, keep int) string {
+func minifyPath(path string) string {
 	if path == "" {
 		return path
 	}
-	if home := home(); strings.HasPrefix(path, home) {
-		path = "~" + path[len(home):len(path)]
-	}
 	dirs := strings.Split(path, "/")
-	for i, d := range dirs[:len(dirs)-keep] {
-		dirs[i] = minifyDir(d)
+	home := home()
+	keep := 1
+	has_git := false
+	parent := path
+	if _, err := os.Stat(path+"/.git"); !errors.Is(err, os.ErrNotExist) {
+		has_git = true
+	}
+	for i := len(dirs)-1; i > 0; i-- {
+		path = parent
+		if path == home {
+			dirs = dirs[i:]
+			dirs[0] = "~"
+			break
+		}
+		if has_git {
+			has_git = false
+			if repo, err := git.RepoBuilder(path); err == nil {
+				keep = 0
+				if strings.HasSuffix("/"+dirs[i], "/"+repo.Branch()) {
+					keep++
+				}
+				dirs[i] += repo.Stats() + "\033[94m"
+				continue
+			}
+		}
+		shorten := 1
+		parent = strings.Join(dirs[:i], "/")
+		dir := dirs[i]
+		dirL := len(dir)
+		list, _ := ioutil.ReadDir(parent)
+		for _, f := range list {
+			name := f.Name()
+			if name == ".git" {
+				has_git = true
+			}
+			if dir == name {
+				continue
+			}
+			limit := min(dirL, len(name))
+			for j := shorten; j <= limit; j++ {
+				if dir[:j] != name[:j] {
+					if j > shorten {
+						shorten = j
+					}
+					break
+				}
+			}
+		}
+		if keep > 0 {
+			keep--
+			continue
+		}
+		dirs[i] = dir[:shorten]
 	}
 	return "\033[94m" + strings.Join(dirs, "/") + "\033[m"
 }
 
-func applyVCS(path string, vcs git.VCS) string {
-	root := vcs.RootDir(path)
-	common := path[0:len(root)]
-	remainder := path[len(root):len(path)]
-	keep := 1
-	if strings.HasSuffix(common, "/"+vcs.Branch()) {
-		keep++
-	}
-	return minifyPath(common, keep) + vcs.Stats() + minifyPath(remainder, 1)
-}
-
 func Statusline() string {
 	path, _ := os.Getwd()
-	vcs, err := git.RepoBuilder()
-	if err != nil {
-	return minifyPath(path, 1)
-	}
-	return applyVCS(path, vcs)
+	return minifyPath(path)
 }

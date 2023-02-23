@@ -159,8 +159,8 @@ func repoStringBuilder(str string) repo {
 	return repo{branch, ab, status, stashes}
 }
 
-func RepoBuilder() (repo, error) {
-	str, err := runCommand("status", "--porcelain=v2", "--branch", "--show-stash");
+func RepoBuilder(path string) (repo, error) {
+	str, err := runCommand("-C", path, "status", "--porcelain=v2", "--branch", "--show-stash");
 	if err != nil {
 		return repo{}, err
 	}

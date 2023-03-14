@@ -18,17 +18,17 @@ type ab struct {
 
 func (ab ab) String() string {
 	if !ab.set {
-		return "\033[91;1m↯\033[m"
+		return AnsiColour("91", "1") + "↯" + AnsiColour("")
 	}
 	result := ""
 	if ab.ahead > 0 {
-		result += fmt.Sprintf("\033[32m↑%d", ab.ahead)
+		result += AnsiColour("32") + fmt.Sprintf("↑%d", ab.ahead)
 	}
 	if ab.behind > 0 {
-		result += fmt.Sprintf("\033[31m↓%d", ab.behind)
+		result += AnsiColour("31") + fmt.Sprintf("↓%d", ab.behind)
 	}
 	if result != "" {
-		result += "\033[m"
+		result += AnsiColour("")
 	}
 	return result
 }
@@ -47,19 +47,19 @@ func (s status) Bool() bool {
 func (s status) String() string {
 	var result []string
 	if s.unmerged > 0 {
-		result = append(result, fmt.Sprintf("\033[91;1m%d", s.unmerged))
+		result = append(result, AnsiColour("91;1"), fmt.Sprintf("%d", s.unmerged))
 	}
 	if s.staged > 0 {
-		result = append(result, fmt.Sprintf("\033[32m%d", s.staged))
+		result = append(result, AnsiColour("32"), fmt.Sprintf("%d", s.staged))
 	}
 	if s.unstaged > 0 {
-		result = append(result, fmt.Sprintf("\033[31m%d", s.unstaged))
+		result = append(result, AnsiColour("31"), fmt.Sprintf("%d", s.unstaged))
 	}
 	if s.untracked > 0 {
-		result = append(result, fmt.Sprintf("\033[90m%d", s.untracked))
+		result = append(result, AnsiColour("90"), fmt.Sprintf("%d", s.untracked))
 	}
 	if len(result) > 0 {
-		result = append(result, "\033[m")
+		result = append(result, AnsiColour(""))
 	}
 	return strings.Join(result, "")
 }

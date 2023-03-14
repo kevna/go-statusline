@@ -25,3 +25,7 @@ func count(arg ...string) (int, error) {
 	rows := strings.Split(str, "\n")
 	return len(rows)-1, nil
 }
+
+func AnsiColour(escapes ...string) string {
+	return "\033[" + strings.Join(escapes, ";") + "m"
+}

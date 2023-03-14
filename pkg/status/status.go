@@ -31,7 +31,7 @@ func minifyPath(path string, keep int) string {
 	for i, d := range dirs[:len(dirs)-keep] {
 		dirs[i] = minifyDir(d)
 	}
-	return "\033[94m" + strings.Join(dirs, "/") + "\033[m"
+	return git.AnsiColour("94") + strings.Join(dirs, "/") + git.AnsiColour("")
 }
 
 func applyVCS(path string, vcs git.VCS) string {

@@ -8,7 +8,7 @@ import (
 	"errors"
 )
 
-const icon = "\033[38;5;202m\uE0A0\033[m"
+const icon = "\001\033[38;5;202m\002\uE0A0\001\033[0m\002"
 
 type ab struct {
 	set bool

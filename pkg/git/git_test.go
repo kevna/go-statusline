@@ -10,12 +10,12 @@ func TestAbString(t *testing.T) {
 		ab ab
 		expected string
 	}{
-		{ab{}, "\033[91;1m↯\033[0m"},
+		{ab{}, "\001\033[91;1m\002↯\001\033[0m\002"},
 		{ab{true, 0, 0}, ""},
-		{ab{true, 1, 0}, "\033[32m↑1\033[0m"},
-		{ab{true, 0, 1}, "\033[31m↓1\033[0m"},
-		// {ab{true, 1, 10}, "\033[30;41m↕11\033[0m"},
-		{ab{true, 1, 10}, "\033[32m↑1\033[31m↓10\033[0m"},
+		{ab{true, 1, 0}, "\001\033[32m\002↑1\001\033[0m\002"},
+		{ab{true, 0, 1}, "\001\033[31m\002↓1\001\033[0m\002"},
+		// {ab{true, 1, 10}, "\001\033[30;41m\002↕11\001\033[0m\002"},
+		{ab{true, 1, 10}, "\001\033[32m\002↑1\001\033[31m\002↓10\001\033[0m\002"},
 	}
 	for _, test := range tests {
 		actual := test.ab.String()
@@ -29,11 +29,11 @@ func TestStatusString(t *testing.T) {
 		expected string
 	}{
 		{status{}, ""},
-		{status{1, 0, 0, 0}, "\033[91;1m1\033[0m"},
-		{status{0, 1, 0, 0}, "\033[32m1\033[0m"},
-		{status{0, 0, 1, 0}, "\033[31m1\033[0m"},
-		{status{0, 0, 0, 1}, "\033[90m1\033[0m"},
-		{status{1, 2, 4, 5}, "\033[91;1m1\033[32m2\033[31m4\033[90m5\033[0m"},
+		{status{1, 0, 0, 0}, "\001\033[91;1m\0021\001\033[0m\002"},
+		{status{0, 1, 0, 0}, "\001\033[32m\0021\001\033[0m\002"},
+		{status{0, 0, 1, 0}, "\001\033[31m\0021\001\033[0m\002"},
+		{status{0, 0, 0, 1}, "\001\033[90m\0021\001\033[0m\002"},
+		{status{1, 2, 4, 5}, "\001\033[91;1m\0021\001\033[32m\0022\001\033[31m\0024\001\033[90m\0025\001\033[0m\002"},
 	}
 	for _, test := range tests {
 		actual := test.status.String()
@@ -46,16 +46,16 @@ func TestRepoStats(t *testing.T) {
 		repo repo
 		expected string
 	}{
-		{repo{}, icon+"\033[91;1m↯\033[0m"},
-		{repo{"master", ab{}, status{}, 0}, icon+"master\033[91;1m↯\033[0m"},
+		{repo{}, icon+"\001\033[91;1m\002↯\001\033[0m\002"},
+		{repo{"master", ab{}, status{}, 0}, icon+"master\001\033[91;1m\002↯\001\033[0m\002"},
 		{repo{"master", ab{true, 0, 0}, status{}, 0}, icon+"master"},
 		{
 			repo{"master", ab{}, status{1, 1, 1, 1}, 0},
-			icon+"master\x1b[91;1m↯\x1b[0m(\x1b[91;1m1\x1b[32m1\x1b[31m1\x1b[90m1\x1b[0m)",
+			icon+"master\x01\x1b[91;1m\x02↯\x01\x1b[0m\x02(\x01\x1b[91;1m\x021\x01\x1b[32m\x021\x01\x1b[31m\x021\x01\x1b[90m\x021\x01\x1b[0m\x02)",
 		},
 		{
 			repo{"master", ab{true, 1, 10}, status{1, 1, 4, 5}, 3},
-			icon+"master\x1b[32m↑1\x1b[31m↓10\x1b[0m(\x1b[91;1m1\x1b[32m1\x1b[31m4\x1b[90m5\x1b[0m){3}",
+			icon+"master\x01\x1b[32m\x02↑1\x01\x1b[31m\x02↓10\x01\x1b[0m\x02(\x01\x1b[91;1m\x021\x01\x1b[32m\x021\x01\x1b[31m\x024\x01\x1b[90m\x025\x01\x1b[0m\x02){3}",
 		},
 	}
 	for _, test := range tests {

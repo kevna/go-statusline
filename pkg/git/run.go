@@ -27,5 +27,5 @@ func count(arg ...string) (int, error) {
 }
 
 func AnsiColour(escapes ...string) string {
-	return "\033[" + strings.Join(escapes, ";") + "m"
+	return "\001\033[" + strings.Join(escapes, ";") + "m\002"
 }

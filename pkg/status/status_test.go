@@ -26,10 +26,10 @@ func TestMinifyPath(t* testing.T) {
 		keep int
 		expected string
 	}{
-		{"~", 1, "\033[94m~\033[m"},
-		{"/etc/X11/xorg.conf.d", 1, "\033[94m/e/X/xorg.conf.d\033[m"},
-		{"~/.local/share/chezmoi/private_dot_config/i3", 1, "\033[94m~/.l/s/c/p/i3\033[m"},
-		{"~/.local/share/chezmoi/private_dot_config/i3", 2, "\033[94m~/.l/s/c/private_dot_config/i3\033[m"},
+		{"~", 1, "\033[94m~\033[0m"},
+		{"/etc/X11/xorg.conf.d", 1, "\033[94m/e/X/xorg.conf.d\033[0m"},
+		{"~/.local/share/chezmoi/private_dot_config/i3", 1, "\033[94m~/.l/s/c/p/i3\033[0m"},
+		{"~/.local/share/chezmoi/private_dot_config/i3", 2, "\033[94m~/.l/s/c/private_dot_config/i3\033[0m"},
 	}
 	for _, test := range tests {
 		actual := minifyPath(test.path, test.keep)
@@ -59,28 +59,28 @@ func TestApplyVCS(t* testing.T) {
 			"master",
 			"\uE0A0master",
 			"~/.local/share/chezmoi/private_dot_config/i3",
-			"\033[94m~/.l/s/chezmoi\033[m\uE0A0master\033[94m/p/i3\033[m",
+			"\033[94m~/.l/s/chezmoi\033[0m\uE0A0master\033[94m/p/i3\033[0m",
 		},
 		{
 			"~/Documents/python/statusline/master",
 			"master",
 			"\uE0A0",
 			"~/Documents/python/statusline/master/statusline",
-			"\033[94m~/D/p/statusline/master\033[m\uE0A0\033[94m/statusline\033[m",
+			"\033[94m~/D/p/statusline/master\033[0m\uE0A0\033[94m/statusline\033[0m",
 		},
 		{
 			"~/Documents/python/statusline-master",
 			"master",
 			"\uE0A0",
 			"~/Documents/python/statusline-master/statusline",
-			"\033[94m~/D/p/statusline-master\033[m\uE0A0\033[94m/statusline\033[m",
+			"\033[94m~/D/p/statusline-master\033[0m\uE0A0\033[94m/statusline\033[0m",
 		},
 		{
 			"~/Documents/python/statusline/feature/newfeature",
 			"feature/newfeature",
 			"\uE0A0",
 			"~/Documents/python/statusline/feature/newfeature/statusline",
-			"\033[94m~/D/p/s/feature/newfeature\033[m\uE0A0\033[94m/statusline\033[m",
+			"\033[94m~/D/p/s/feature/newfeature\033[0m\uE0A0\033[94m/statusline\033[0m",
 		},
 	}
 	for _, test := range tests {

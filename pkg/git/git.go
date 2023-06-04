@@ -18,7 +18,7 @@ type ab struct {
 
 func (ab ab) String() string {
 	if !ab.set {
-		return AnsiColour("91", "1") + "↯" + AnsiColour("")
+		return AnsiColour("91", "1") + "↯" + AnsiColour("0")
 	}
 	result := ""
 	if ab.ahead > 0 {
@@ -28,7 +28,7 @@ func (ab ab) String() string {
 		result += AnsiColour("31") + fmt.Sprintf("↓%d", ab.behind)
 	}
 	if result != "" {
-		result += AnsiColour("")
+		result += AnsiColour("0")
 	}
 	return result
 }
@@ -59,7 +59,7 @@ func (s status) String() string {
 		result = append(result, AnsiColour("90"), fmt.Sprintf("%d", s.untracked))
 	}
 	if len(result) > 0 {
-		result = append(result, AnsiColour(""))
+		result = append(result, AnsiColour("0"))
 	}
 	return strings.Join(result, "")
 }
